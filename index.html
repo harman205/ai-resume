@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Resume Screener</title>
+  <style>
+    /* Matte background */
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #2c2f33;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: #333;
+    }
+
+    /* Main container (BIGGER) */
+    .container {
+      background: #ffffff;
+      padding: 50px;
+      border-radius: 18px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+      width: 800px;
+      min-height: 600px;
+      text-align: center;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .container:hover {
+      transform: translateY(-5px);
+    }
+
+    /* Heading */
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      color: #1e1e1e;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    /* Form styling */
+    .form-box {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      text-align: left;
+      font-size: 18px;
+    }
+
+    label {
+      font-weight: 600;
+      color: #333;
+    }
+
+    textarea {
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid #bbb;
+      font-size: 16px;
+      outline: none;
+      resize: none;
+      height: 150px;
+    }
+
+    /* Custom Upload Button */
+    .upload-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .upload-label {
+      display: inline-block;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #28a745, #218838);
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .upload-label:hover {
+      background: linear-gradient(135deg, #218838, #1c6d31);
+      transform: scale(1.05);
+      box-shadow: 0 8px 20px rgba(40, 167, 69, 0.5);
+    }
+
+    .upload-label:active {
+      transform: scale(0.95);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    }
+
+    .upload-input {
+      display: none;
+    }
+
+    .file-name {
+      margin-top: 8px;
+      font-size: 15px;
+      color: #555;
+      font-style: italic;
+    }
+
+    /* Button with animation */
+    button {
+      padding: 16px;
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #0056b3, #003f88);
+      transform: scale(1.07);
+      box-shadow: 0 8px 20px rgba(0, 123, 255, 0.5);
+    }
+
+    button:active {
+      transform: scale(0.95);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+    }
+
+    /* Results Box */
+    .result-box {
+      margin-top: 35px;
+      padding: 20px;
+      border-radius: 14px;
+      background: #f4f6f9;
+      border: 1px solid #ddd;
+      text-align: left;
+      font-size: 18px;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    .result-box h2 {
+      margin-top: 0;
+      font-size: 22px;
+      color: #222;
+    }
+
+    #output {
+      font-size: 17px;
+      color: #333;
+      margin-top: 12px;
+    }
+
+    /* Fade-in animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AI-Powered Resume Screener</h1>
+    <p class="subtitle">Upload resumes and match them against job descriptions with AI assistance</p>
+
+    <div class="form-box">
+      <label>📄 Upload Resume:</label>
+      <div class="upload-wrapper">
+        <label for="resumeUpload" class="upload-label">Choose Resume File</label>
+        <input type="file" id="resumeUpload" class="upload-input" accept=".pdf,.doc,.docx">
+        <div id="fileName" class="file-name">No file selected</div>
+      </div>
+
+      <label for="jobDescription">📝 Job Description:</label>
+      <textarea id="jobDescription" placeholder="Paste job description here..."></textarea>
+
+      <button id="analyzeBtn">Analyze Resume</button>
+    </div>
+
+    <div id="result" class="result-box">
+      <h2>Screening Result</h2>
+      <p id="output">Upload resume and job description to see results.</p>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById("resumeUpload");
+    const fileNameDisplay = document.getElementById("fileName");
+
+    fileInput.addEventListener("change", () => {
+      fileNameDisplay.textContent = fileInput.files.length > 0 ? fileInput.files[0].name : "No file selected";
+    });
+
+    document.getElementById("analyzeBtn").addEventListener("click", () => {
+      const resume = fileInput.files[0];
+      const jobDesc = document.getElementById("jobDescription").value;
+      const output = document.getElementById("output");
+
+      if (!resume || jobDesc.trim() === "") {
+        output.innerHTML = "⚠️ Please upload a resume and enter job description.";
+        return;
+      }
+
+      // Simulated AI scoring (placeholder for backend API)
+      let score = Math.floor(Math.random() * 40) + 60; // random 60–100
+      let rank = score > 85 ? "🌟 Excellent Match" : score > 70 ? "👍 Good Match" : "⚠️ Average Match";
+
+      output.innerHTML = `
+        <strong>Resume Analyzed:</strong> ${resume.name} <br>
+        <strong>Match Score:</strong> ${score}% <br>
+        <strong>Result:</strong> ${rank}
+      `;
+    });
+  </script>
+</body>
+</html>
+
+
+
